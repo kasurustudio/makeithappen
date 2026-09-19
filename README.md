@@ -1,6 +1,6 @@
 # Make It Happen — Wedding Backoffice
 
-Backoffice pribadi untuk memanage persiapan pernikahan: vendor, budget & pembayaran, tamu & RSVP, dan checklist/timeline. Dibuat dengan Next.js (App Router), TypeScript, Tailwind CSS, dan Prisma (SQLite).
+Backoffice pribadi untuk memanage persiapan pernikahan: vendor, budget & pembayaran, tamu & RSVP, dan checklist/timeline. Dibuat dengan Next.js (App Router), TypeScript, Tailwind CSS, dan Prisma (PostgreSQL).
 
 Ini adalah aplikasi internal untuk kebutuhan pribadi — bukan replika publik dari platform manapun, hanya terinspirasi dari fitur-fitur umum backoffice vendor pernikahan.
 
@@ -19,33 +19,36 @@ Login tunggal (single-user) dengan username/password dari environment variable �
 - [Next.js 16](https://nextjs.org) (App Router, Server Actions)
 - TypeScript
 - Tailwind CSS
-- [Prisma](https://www.prisma.io) + SQLite
+- [Prisma](https://www.prisma.io) + PostgreSQL
 
-## Setup
+## Setup Lokal
 
-1. Install dependencies:
+1. Siapkan database PostgreSQL (lokal via Docker, atau pakai instance cloud seperti Vercel Postgres/Neon/Supabase).
+
+2. Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Salin `.env.example` menjadi `.env` dan sesuaikan:
+3. Salin `.env.example` menjadi `.env` dan sesuaikan:
 
    ```bash
    cp .env.example .env
    ```
 
+   - `DATABASE_URL` — connection string PostgreSQL, format `postgresql://user:password@host:5432/dbname`.
    - `ADMIN_USERNAME` / `ADMIN_PASSWORD` — kredensial login backoffice. **Wajib diganti** dari nilai default.
    - `SESSION_SECRET` — string acak panjang untuk menandatangani session cookie.
-   - `COOKIE_SECURE` — set `"true"` jika aplikasi di-deploy di belakang HTTPS.
+   - `COOKIE_SECURE` — set `"true"` jika aplikasi diakses via HTTPS.
 
-3. Jalankan migrasi database (membuat file SQLite lokal):
+4. Jalankan migrasi database:
 
    ```bash
    npx prisma migrate deploy
    ```
 
-4. Jalankan server development:
+5. Jalankan server development:
 
    ```bash
    npm run dev
@@ -53,14 +56,16 @@ Login tunggal (single-user) dengan username/password dari environment variable �
 
    Buka [http://localhost:3000](http://localhost:3000), login dengan kredensial dari `.env`.
 
-## Build untuk Produksi
+## Deploy ke Vercel
 
-```bash
-npm run build
-npm start
-```
-
-Karena database menggunakan SQLite (`prisma/dev.db`), pastikan file ini persisten (tidak ikut terhapus) saat deploy ulang — misalnya dengan volume/disk yang persisten di hosting pilihanmu.
+1. Import repo ini ke Vercel.
+2. Tambahkan database Postgres lewat **Storage** tab di project Vercel (mis. Vercel Postgres/Neon), sehingga `DATABASE_URL` otomatis terisi. Kalau nama variabelnya berbeda (misal `POSTGRES_URL`), tambahkan manual environment variable `DATABASE_URL` yang menunjuk ke nilai yang sama.
+3. Tambahkan environment variable berikut di **Project Settings → Environment Variables** (untuk Production, dan Preview bila dipakai):
+   - `ADMIN_USERNAME`
+   - `ADMIN_PASSWORD`
+   - `SESSION_SECRET`
+   - `COOKIE_SECURE` = `true`
+4. Deploy. Script `build` (`prisma migrate deploy && next build`) otomatis menjalankan migrasi database di setiap deploy, dan `postinstall` (`prisma generate`) memastikan Prisma Client selalu ter-generate saat instalasi dependency.
 
 ## Struktur Data
 
