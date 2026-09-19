@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum VendorCategory {
+  VENUE
+  CATERING
+  PHOTOGRAPHY
+  VIDEOGRAPHY
+  DECORATION
+  MAKEUP_ARTIST
+  ATTIRE
+  MUSIC_ENTERTAINMENT
+  INVITATION
+  SOUVENIR
+  WEDDING_ORGANIZER
+  TRANSPORTATION
+  OTHER
+}
+
+enum VendorStatus {
+  CONSIDERING
+  CONTACTED
+  NEGOTIATING
+  BOOKED
+  PAID_IN_FULL
+  CANCELLED
+}
+
+enum RsvpStatus {
+  PENDING
+  ATTENDING
+  NOT_ATTENDING
+  MAYBE
+}
+
+enum GuestSide {
+  BRIDE
+  GROOM
+  BOTH
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Vendor {
+  id            String         @id @default(cuid())
+  name          String
+  category      VendorCategory
+  status        VendorStatus   @default(CONSIDERING)
+  contactName   String?
+  contactPhone  String?
+  contactEmail  String?
+  instagram     String?
+  agreedPrice   Float?
+  notes         String?
+  budgetCategoryId String?
+  budgetCategory BudgetCategory? @relation(fields: [budgetCategoryId], references: [id])
+  payments      Payment[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model BudgetCategory {
+  id            String    @id @default(cuid())
+  name          String
+  plannedAmount Float     @default(0)
+  vendors       Vendor[]
+  payments      Payment[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Payment {
+  id               String          @id @default(cuid())
+  amount           Float
+  label            String
+  paidAt           DateTime        @default(now())
+  vendorId         String?
+  vendor           Vendor?         @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  budgetCategoryId String?
+  budgetCategory   BudgetCategory? @relation(fields: [budgetCategoryId], references: [id], onDelete: SetNull)
+  notes            String?
+  createdAt        DateTime        @default(now())
+}
+
+model Guest {
+  id                String     @id @default(cuid())
+  name              String
+  side              GuestSide  @default(BOTH)
+  group             String?
+  phone             String?
+  pax               Int        @default(1)
+  rsvpStatus        RsvpStatus @default(PENDING)
+  tableNumber       String?
+  invitationSent    Boolean    @default(false)
+  notes             String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model ChecklistTask {
+  id          String       @id @default(cuid())
+  title       String
+  category    String?
+  dueDate     DateTime?
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Settings {
+  id          String    @id @default(cuid())
+  weddingDate DateTime?
+  totalBudget Float     @default(0)
+  brideName   String?
+  groomName   String?
+}
