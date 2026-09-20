@@ -78,16 +78,21 @@ Untuk mematikan database lokal: `docker compose down` (data tersimpan di volume,
 
 Kalau tidak pakai Docker, siapkan database PostgreSQL sendiri (lokal atau cloud seperti Supabase/Neon), lalu isi `DATABASE_URL` di `.env` dengan connection string-nya sebelum lanjut ke langkah 5 di atas.
 
-## Deploy ke Vercel
+## Deploy ke Vercel (dengan Supabase)
 
 1. Import repo ini ke Vercel.
-2. Tambahkan database Postgres lewat **Storage** tab di project Vercel (mis. Vercel Postgres/Neon), sehingga `DATABASE_URL` otomatis terisi. Kalau nama variabelnya berbeda (misal `POSTGRES_URL`), tambahkan manual environment variable `DATABASE_URL` yang menunjuk ke nilai yang sama.
-3. Tambahkan environment variable berikut di **Project Settings → Environment Variables** (untuk Production, dan Preview bila dipakai):
+2. Buat project di [Supabase](https://supabase.com), lalu pasang **integrasi Vercel resmi** dari Supabase (Project Settings → Integrations → Vercel → Connect), pilih project Vercel-nya. Ini otomatis mengisi beberapa environment variable Postgres di Vercel (`POSTGRES_URL`, `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING`, dst) — **tapi belum bernama `DATABASE_URL`/`DIRECT_URL` yang dibutuhkan kode ini**, jadi masih perlu langkah 3.
+3. Di Vercel → **Project Settings → Environment Variables**, tambahkan dua variabel baru (untuk environment Production):
+   - `DATABASE_URL` = salin nilai dari `POSTGRES_PRISMA_URL` (connection pooled, dipakai aplikasi saat runtime)
+   - `DIRECT_URL` = salin nilai dari `POSTGRES_URL_NON_POOLING` (koneksi langsung, dipakai khusus saat migrasi)
+4. Tambahkan environment variable berikut juga:
    - `ADMIN_USERNAME`
    - `ADMIN_PASSWORD`
    - `SESSION_SECRET`
    - `COOKIE_SECURE` = `true`
-4. Deploy. Script `build` (`prisma migrate deploy && next build`) otomatis menjalankan migrasi database di setiap deploy, dan `postinstall` (`prisma generate`) memastikan Prisma Client selalu ter-generate saat instalasi dependency.
+5. Deploy/Redeploy. Script `build` (`prisma migrate deploy && next build`) otomatis menjalankan migrasi database (lewat `DIRECT_URL`) di setiap deploy, dan `postinstall` (`prisma generate`) memastikan Prisma Client selalu ter-generate saat instalasi dependency.
+
+Provider Postgres lain (Vercel Postgres/Neon, dst) mengikuti pola yang sama: pastikan ada variabel persis bernama `DATABASE_URL` (pooled) dan `DIRECT_URL` (non-pooled/direct) di Vercel.
 
 ## Struktur Data
 
