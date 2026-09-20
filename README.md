@@ -21,40 +21,62 @@ Login tunggal (single-user) dengan username/password dari environment variable �
 - Tailwind CSS
 - [Prisma](https://www.prisma.io) + PostgreSQL
 
-## Setup Lokal
+## Setup Lokal (Quick Start dengan Docker)
 
-1. Siapkan database PostgreSQL (lokal via Docker, atau pakai instance cloud seperti Vercel Postgres/Neon/Supabase).
+Cara tercepat untuk menjalankan & mengecek aplikasi ini di komputermu sendiri:
 
-2. Install dependencies:
+1. Clone repo dan masuk ke foldernya:
+
+   ```bash
+   git clone https://github.com/kasurustudio/makeithappen.git
+   cd makeithappen
+   ```
+
+2. Nyalakan database PostgreSQL lokal via Docker (butuh [Docker Desktop](https://www.docker.com/products/docker-desktop/) terinstall):
+
+   ```bash
+   docker compose up -d
+   ```
+
+3. Install dependencies:
 
    ```bash
    npm install
    ```
 
-3. Salin `.env.example` menjadi `.env` dan sesuaikan:
+4. Salin `.env.example` menjadi `.env` — nilai default `DATABASE_URL` sudah cocok dengan `docker-compose.yml`, tidak perlu diubah untuk coba-coba lokal:
 
    ```bash
    cp .env.example .env
    ```
 
-   - `DATABASE_URL` — connection string PostgreSQL, format `postgresql://user:password@host:5432/dbname`.
-   - `ADMIN_USERNAME` / `ADMIN_PASSWORD` — kredensial login backoffice. **Wajib diganti** dari nilai default.
-   - `SESSION_SECRET` — string acak panjang untuk menandatangani session cookie.
-   - `COOKIE_SECURE` — set `"true"` jika aplikasi diakses via HTTPS.
+   Kalau mau ganti kredensial login, edit `ADMIN_USERNAME` / `ADMIN_PASSWORD` di `.env` (default: `admin` / `change-this-password`).
 
-4. Jalankan migrasi database:
+5. Jalankan migrasi database:
 
    ```bash
    npx prisma migrate deploy
    ```
 
-5. Jalankan server development:
+6. (Opsional tapi disarankan) Isi data contoh biar tidak kosong saat dicek:
+
+   ```bash
+   npx prisma db seed
+   ```
+
+7. Jalankan server development:
 
    ```bash
    npm run dev
    ```
 
-   Buka [http://localhost:3000](http://localhost:3000), login dengan kredensial dari `.env`.
+   Buka [http://localhost:3000](http://localhost:3000) di browser, login dengan kredensial dari `.env`.
+
+Untuk mematikan database lokal: `docker compose down` (data tersimpan di volume, `docker compose down -v` untuk hapus total).
+
+### Tanpa Docker
+
+Kalau tidak pakai Docker, siapkan database PostgreSQL sendiri (lokal atau cloud seperti Supabase/Neon), lalu isi `DATABASE_URL` di `.env` dengan connection string-nya sebelum lanjut ke langkah 5 di atas.
 
 ## Deploy ke Vercel
 
